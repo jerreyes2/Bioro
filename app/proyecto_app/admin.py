@@ -5,6 +5,13 @@ from django.contrib.admin.actions import delete_selected
 #admin.site.register(familia)
 
 # Register your models here.
+
+"""mensaje de errror usuario/contrasena"""
+
+
+
+
+
 """
 class biomaAdmin (admin.ModelAdmin):
     list_display = ("nom_bioma","sigla_bioma","des_altitudinal_bioma","has_altitudinal_bioma","remanencia","ext_bioma")

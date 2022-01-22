@@ -21,6 +21,8 @@ from proyecto_app.models import BiomasEspecies, Especies, Familias, Flora, Flora
 from proyecto_app.models import Biomas,Imagenes
 from proyecto_app.contexto import obtener_id
 
+
+
 # Create your views here.
 
 def index(request):
@@ -29,6 +31,9 @@ def index(request):
 
 def administracion(request):
     return render(request, "administracion.html")
+    
+        
+   
 
 def inicio(request):
     return render(request, "inicio.html")
@@ -241,13 +246,46 @@ def base(request):
     return render(request, "Fauna/Anfibios/dashboard.html" )
 
 def busqueda_anfibio(request):
+    consulta = " SELECT es.id_especie , \
+	ifnull(es.nom_cientifico, 'Desconocido') as nom_cientifico, \
+	ifnull(es.nom_especie, 'Desconocido') as nom_especie, \
+	ifnull(lower(es.tipo) , 'Desconocido')  as tipo ,  \
+	ifnull(es.rango_altitudinal,'Desconocido') as rango_altitudinal, \
+	ifnull( es.ubicacion, 'Desconocido') as ubicacion, \
+	ifnull(b.nom_bioma , 'Desconocido') as nom_bioma, \
+	ifnull(es.descripcion, 'Desconocido') as descripcion, \
+	ifnull( es.nom_ingles , 'Desconocido') as nom_ingles, \
+	ifnull(lower(estado.categoria),'Desconocido') as categoria,  \
+    ifnull(nicho.nom_nicho, 'Desconocido') as nom_nicho, \
+    ifnull(per.ape_persona , 'Desconocido') as ape_persona, \
+    ifnull(fam.nom_familia, 'Desconocido') as nom_familia, \
+    ifnull(sub.nom_subfamilia, 'Desconocido') as nom_subfamilia, \
+	ifnull(ord.nom_orden, 'Desconocido') as nom_orden, \
+	ifnull(cl.nom_clase, 'Desconocido') as nom_clase , \
+	ifnull(es.anio_descubrimiento,'Desconocido') as anio_descubrimiento, \
+	ifnull(mi.nom_migracion , 'Desconocido') as nom_migracion  \
+    FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) \
+    LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) \
+    LEFT JOIN personas as per ON (es.id_persona = per.id_persona) \
+    LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) \
+    LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) \
+    LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) \
+    LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) \
+    LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) \
+    LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) \
+    LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) \
+    where (b.id_bioma = "+str(id_bioma_)+" ) AND (lower(es.tipo) ='anfibio');"
 
-    data_fauna = Especies.objects.raw("SELECT es.id_especie ,es.nom_cientifico, es.nom_especie, lower(es.tipo) as tipo, es.rango_altitudinal, es.ubicacion, b.nom_bioma ,es.descripcion, es.nom_ingles , lower(estado.categoria) as categoria, nicho.nom_nicho, per.ape_persona , fam.nom_familia, sub.nom_subfamilia, ord.nom_orden, cl.nom_clase, es.anio_descubrimiento, mi.nom_migracion  FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) LEFT JOIN personas as per ON (es.id_persona = per.id_persona) LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) where (b.id_bioma = "+str(id_bioma_)+") AND (lower(es.tipo) ='anfibio');")
+    data_fauna = Especies.objects.raw(consulta)
+
     estado_conservacion = EstadoConservacion.objects.filter().order_by('categoria')
     ordenes = Ordenes.objects.filter().order_by('nom_orden')
     familias = Familias.objects.filter()
     subfamilias = Subfamilias.objects.filter().order_by('nom_subfamilia')
     ubicacion = Especies.objects.raw("SELECT DISTINCT id_especie, ubicacion FROM especies where ubicacion is not null")
+
+    if data_fauna is object:
+        print() 
 
     return render(request, "Fauna/Anfibios/busqueda.html", { "data_fauna":data_fauna,"estado_conservacion":estado_conservacion, "ubicacion":ubicacion, "ordenes":ordenes,"familias":familias , "subfamilias":subfamilias})
 
@@ -272,12 +310,22 @@ def noticias_anfibio(request):
 
 def lista_especies_anfibios(request):
     imagenes = Imagenes.objects.raw("SELECT id_imagen, i.imagen FROM imagenes AS i LEFT JOIN biomas_especies as d on (i.id_especie = d.id_especie ) left JOIN especies as es on (i.id_especie = es.id_especie ) where ((d.id_bioma = "+str(id_bioma_)+") AND (es.tipo='anfibio'));")
+    
     return render(request,"Fauna/Anfibios/lista_especie.html",{ 'imagen' : imagenes })
 
 def ficha_tenica_anfibio(request,id_especie):
     #SELECT  id_imagen, i.imagen, es.tipo , f.nom_familia, es.nom_especie FROM imagenes AS i left JOIN especies as es on (i.id_especie = es.id_especie ) left JOIN familias as f on (f.id_familia = es.id_familia ) where (es.id_especie=539) ;
-    
-    imagenes = Imagenes.objects.raw("SELECT  id_imagen, i.imagen, es.tipo , f.nom_familia, es.nom_especie FROM imagenes AS i left JOIN especies as es on (i.id_especie = es.id_especie ) left JOIN familias as f on (f.id_familia = es.id_familia ) where (es.id_especie="+str(id_especie)+") ;")
+    consulta = "SELECT  id_imagen, \
+		 ifnull(i.imagen, 'Desconocido') as imagen, \
+		 ifnull(es.tipo , 'Desconocido') as tipo, \
+		 ifnull(f.nom_familia, 'Desconocido') as nom_familia, \
+		 ifnull(es.nom_especie ,'Desconocido') as nom_especie \
+        FROM imagenes AS i  \
+        left JOIN especies as es on (i.id_especie = es.id_especie )  \
+        left JOIN familias as f on (f.id_familia = es.id_familia ) \
+        where (es.id_especie="+str(id_especie)+") ;" 
+
+    imagenes = Imagenes.objects.raw(consulta)
     imagen=Imagenes.objects.filter(id_especie=id_especie)
     for i in imagen:
         imagen = Imagenes.objects.filter(id_imagen= i.id_imagen)
@@ -305,7 +353,37 @@ def basereptil(request):
 
 def busqueda_reptil(request):
 
-    data_fauna = Especies.objects.raw("SELECT es.id_especie ,es.nom_cientifico, es.nom_especie, lower(es.tipo) as tipo, es.rango_altitudinal, es.ubicacion, b.nom_bioma ,es.descripcion, es.nom_ingles , lower(estado.categoria) as categoria, nicho.nom_nicho, per.ape_persona , fam.nom_familia, sub.nom_subfamilia, ord.nom_orden, cl.nom_clase, es.anio_descubrimiento, mi.nom_migracion  FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) LEFT JOIN personas as per ON (es.id_persona = per.id_persona) LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) where (b.id_bioma = "+str(id_bioma_)+") AND (lower(es.tipo) ='reptil');")
+    consulta = " SELECT es.id_especie , \
+	ifnull(es.nom_cientifico, 'Desconocido') as nom_cientifico, \
+	ifnull(es.nom_especie, 'Desconocido') as nom_especie, \
+	ifnull(lower(es.tipo) , 'Desconocido')  as tipo ,  \
+	ifnull(es.rango_altitudinal,'Desconocido') as rango_altitudinal, \
+	ifnull( es.ubicacion, 'Desconocido') as ubicacion, \
+	ifnull(b.nom_bioma , 'Desconocido') as nom_bioma, \
+	ifnull(es.descripcion, 'Desconocido') as descripcion, \
+	ifnull( es.nom_ingles , 'Desconocido') as nom_ingles, \
+	ifnull(lower(estado.categoria),'Desconocido') as categoria,  \
+    ifnull(nicho.nom_nicho, 'Desconocido') as nom_nicho, \
+    ifnull(per.ape_persona , 'Desconocido') as ape_persona, \
+    ifnull(fam.nom_familia, 'Desconocido') as nom_familia, \
+    ifnull(sub.nom_subfamilia, 'Desconocido') as nom_subfamilia, \
+	ifnull(ord.nom_orden, 'Desconocido') as nom_orden, \
+	ifnull(cl.nom_clase, 'Desconocido') as nom_clase , \
+	ifnull(es.anio_descubrimiento,'Desconocido') as anio_descubrimiento, \
+	ifnull(mi.nom_migracion , 'Desconocido') as nom_migracion  \
+    FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) \
+    LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) \
+    LEFT JOIN personas as per ON (es.id_persona = per.id_persona) \
+    LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) \
+    LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) \
+    LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) \
+    LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) \
+    LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) \
+    LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) \
+    LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) \
+    where (b.id_bioma = "+str(id_bioma_)+" ) AND (lower(es.tipo) ='reptil');"
+
+    data_fauna = Especies.objects.raw(consulta)
     estado_conservacion = EstadoConservacion.objects.filter().order_by('categoria')
     ordenes = Ordenes.objects.filter().order_by('nom_orden')
     familias = Familias.objects.filter()
@@ -361,7 +439,37 @@ def baseave(request):
 
 def busqueda_ave(request):
 
-    data_fauna = Especies.objects.raw("SELECT es.id_especie ,es.nom_cientifico, es.nom_especie, lower(es.tipo) as tipo, es.rango_altitudinal, es.ubicacion, b.nom_bioma ,es.descripcion, es.nom_ingles , lower(estado.categoria) as categoria, nicho.nom_nicho, per.ape_persona , fam.nom_familia, sub.nom_subfamilia, ord.nom_orden, cl.nom_clase, es.anio_descubrimiento, mi.nom_migracion  FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) LEFT JOIN personas as per ON (es.id_persona = per.id_persona) LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) where (b.id_bioma = "+str(id_bioma_)+") AND (lower(es.tipo) ='ave');")
+    consulta = " SELECT es.id_especie , \
+	ifnull(es.nom_cientifico, 'Desconocido') as nom_cientifico, \
+	ifnull(es.nom_especie, 'Desconocido') as nom_especie, \
+	ifnull(lower(es.tipo) , 'Desconocido')  as tipo ,  \
+	ifnull(es.rango_altitudinal,'Desconocido') as rango_altitudinal, \
+	ifnull( es.ubicacion, 'Desconocido') as ubicacion, \
+	ifnull(b.nom_bioma , 'Desconocido') as nom_bioma, \
+	ifnull(es.descripcion, 'Desconocido') as descripcion, \
+	ifnull( es.nom_ingles , 'Desconocido') as nom_ingles, \
+	ifnull(lower(estado.categoria),'Desconocido') as categoria,  \
+    ifnull(nicho.nom_nicho, 'Desconocido') as nom_nicho, \
+    ifnull(per.ape_persona , 'Desconocido') as ape_persona, \
+    ifnull(fam.nom_familia, 'Desconocido') as nom_familia, \
+    ifnull(sub.nom_subfamilia, 'Desconocido') as nom_subfamilia, \
+	ifnull(ord.nom_orden, 'Desconocido') as nom_orden, \
+	ifnull(cl.nom_clase, 'Desconocido') as nom_clase , \
+	ifnull(es.anio_descubrimiento,'Desconocido') as anio_descubrimiento, \
+	ifnull(mi.nom_migracion , 'Desconocido') as nom_migracion  \
+    FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) \
+    LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) \
+    LEFT JOIN personas as per ON (es.id_persona = per.id_persona) \
+    LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) \
+    LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) \
+    LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) \
+    LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) \
+    LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) \
+    LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) \
+    LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) \
+    where (b.id_bioma = "+str(id_bioma_)+" ) AND (lower(es.tipo) ='ave');"
+
+    data_fauna = Especies.objects.raw(consulta)
     estado_conservacion = EstadoConservacion.objects.filter().order_by('categoria')
     ordenes = Ordenes.objects.filter().order_by('nom_orden')
     familias = Familias.objects.filter()
@@ -413,7 +521,37 @@ def basepeces(request):
 
 def busqueda_peces(request):
 
-    data_fauna = Especies.objects.raw("SELECT es.id_especie ,es.nom_cientifico, es.nom_especie, lower(es.tipo) as tipo, es.rango_altitudinal, es.ubicacion, b.nom_bioma ,es.descripcion, es.nom_ingles , lower(estado.categoria) as categoria, nicho.nom_nicho, per.ape_persona , fam.nom_familia, sub.nom_subfamilia, ord.nom_orden, cl.nom_clase, es.anio_descubrimiento, mi.nom_migracion  FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) LEFT JOIN personas as per ON (es.id_persona = per.id_persona) LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) where (b.id_bioma = "+str(id_bioma_)+") AND ( es.tipo ='Pez');")
+    consulta = " SELECT es.id_especie , \
+	ifnull(es.nom_cientifico, 'Desconocido') as nom_cientifico, \
+	ifnull(es.nom_especie, 'Desconocido') as nom_especie, \
+	ifnull(lower(es.tipo) , 'Desconocido')  as tipo ,  \
+	ifnull(es.rango_altitudinal,'Desconocido') as rango_altitudinal, \
+	ifnull( es.ubicacion, 'Desconocido') as ubicacion, \
+	ifnull(b.nom_bioma , 'Desconocido') as nom_bioma, \
+	ifnull(es.descripcion, 'Desconocido') as descripcion, \
+	ifnull( es.nom_ingles , 'Desconocido') as nom_ingles, \
+	ifnull(lower(estado.categoria),'Desconocido') as categoria,  \
+    ifnull(nicho.nom_nicho, 'Desconocido') as nom_nicho, \
+    ifnull(per.ape_persona , 'Desconocido') as ape_persona, \
+    ifnull(fam.nom_familia, 'Desconocido') as nom_familia, \
+    ifnull(sub.nom_subfamilia, 'Desconocido') as nom_subfamilia, \
+	ifnull(ord.nom_orden, 'Desconocido') as nom_orden, \
+	ifnull(cl.nom_clase, 'Desconocido') as nom_clase , \
+	ifnull(es.anio_descubrimiento,'Desconocido') as anio_descubrimiento, \
+	ifnull(mi.nom_migracion , 'Desconocido') as nom_migracion  \
+    FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) \
+    LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) \
+    LEFT JOIN personas as per ON (es.id_persona = per.id_persona) \
+    LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) \
+    LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) \
+    LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) \
+    LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) \
+    LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) \
+    LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) \
+    LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) \
+    where (b.id_bioma = "+str(id_bioma_)+" ) AND (lower(es.tipo) ='Pez');"
+
+    data_fauna = Especies.objects.raw(consulta)
     estado_conservacion = EstadoConservacion.objects.filter().order_by('categoria')
     ordenes = Ordenes.objects.filter().order_by('nom_orden')
     familias = Familias.objects.filter()
@@ -468,7 +606,37 @@ def basemamifero(request):
     return render(request, "Fauna/Mamiferos/dashboard.html")
 
 def busqueda_mamifero(request):
-    data_fauna = Especies.objects.raw("SELECT es.id_especie ,es.nom_cientifico, es.nom_especie, lower(es.tipo) as tipo, es.rango_altitudinal, es.ubicacion, b.nom_bioma ,es.descripcion, es.nom_ingles , lower(estado.categoria) as categoria, nicho.nom_nicho, per.ape_persona , fam.nom_familia, sub.nom_subfamilia, ord.nom_orden, cl.nom_clase, es.anio_descubrimiento, mi.nom_migracion  FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) LEFT JOIN personas as per ON (es.id_persona = per.id_persona) LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) where (b.id_bioma = "+str(id_bioma_)+") AND (lower(es.tipo) ='mamífero');")
+    consulta = " SELECT es.id_especie , \
+	ifnull(es.nom_cientifico, 'Desconocido') as nom_cientifico, \
+	ifnull(es.nom_especie, 'Desconocido') as nom_especie, \
+	ifnull(lower(es.tipo) , 'Desconocido')  as tipo ,  \
+	ifnull(es.rango_altitudinal,'Desconocido') as rango_altitudinal, \
+	ifnull( es.ubicacion, 'Desconocido') as ubicacion, \
+	ifnull(b.nom_bioma , 'Desconocido') as nom_bioma, \
+	ifnull(es.descripcion, 'Desconocido') as descripcion, \
+	ifnull( es.nom_ingles , 'Desconocido') as nom_ingles, \
+	ifnull(lower(estado.categoria),'Desconocido') as categoria,  \
+    ifnull(nicho.nom_nicho, 'Desconocido') as nom_nicho, \
+    ifnull(per.ape_persona , 'Desconocido') as ape_persona, \
+    ifnull(fam.nom_familia, 'Desconocido') as nom_familia, \
+    ifnull(sub.nom_subfamilia, 'Desconocido') as nom_subfamilia, \
+	ifnull(ord.nom_orden, 'Desconocido') as nom_orden, \
+	ifnull(cl.nom_clase, 'Desconocido') as nom_clase , \
+	ifnull(es.anio_descubrimiento,'Desconocido') as anio_descubrimiento, \
+	ifnull(mi.nom_migracion , 'Desconocido') as nom_migracion  \
+    FROM especies as es LEFT JOIN estado_conservacion as estado ON (es.id_estado_conservacion = estado.id_estado_conservacion) \
+    LEFT JOIN nichotrofico as nicho ON (es.id_nicho_trofico = nicho.id_nicho_trofico) \
+    LEFT JOIN personas as per ON (es.id_persona = per.id_persona) \
+    LEFT JOIN familias as fam ON (es.id_familia = fam.id_familia ) \
+    LEFT JOIN subfamilias as sub ON (es.id_subfamilia = sub.id_subfamilia) \
+    LEFT JOIN ordenes as ord ON (es.id_orden = ord.id_orden) \
+    LEFT JOIN clases as cl ON (es.id_clase = cl.id_clase) \
+    LEFT JOIN biomas_especies as be ON (be.id_especie = es.id_especie) \
+    LEFT JOIN biomas as b ON (b.id_bioma = be.id_bioma) \
+    LEFT JOIN migracion_aves as mi ON (es.id_migracion = mi.id_migracion) \
+    where (b.id_bioma = "+str(id_bioma_)+" ) AND (lower(es.tipo) ='mamífero');"
+
+    data_fauna = Especies.objects.raw(consulta)
     estado_conservacion = EstadoConservacion.objects.filter().order_by('categoria')
     ordenes = Ordenes.objects.filter().order_by('nom_orden')
     familias = Familias.objects.filter()
@@ -715,7 +883,8 @@ def IntroAves(request):
 
   
 
-
+def page_not_found404(request, exception):
+    return render(request, "404.html")
 
 
 

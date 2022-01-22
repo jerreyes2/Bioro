@@ -145,9 +145,6 @@
                                 </div>
 
                             </div>
-                            
-                            
-                    
                             <div class="container">
                                                 <div class="row">
                                                     <div class="col-md-6 p-3 ps-0">
@@ -193,6 +190,7 @@
                                             </tr>
                                         </thead>
                                         <tbody id="myTable" style="max-height:6.25rem; overflow:auto; ">
+                                        {% if data_fauna != None  %}
                                             {% for result in data_fauna %}
                                             <tr>
                                                 <td>{{ result.nom_cientifico }}</td>
@@ -214,6 +212,9 @@
                                                 <td>{{ result.nom_migracion }}</td>
                                             </tr>
                                             {% endfor %}
+                                        {% else %}
+                                            <H3 style="padding-bottom: 10px;"> No existen especies de anfibios en este bioma. </H3>
+                                        {% endif %}
                                         </tbody>
                                     </table>
                                 </div> 

@@ -116,6 +116,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="myTable" style="max-height:6.25rem; overflow:auto; ">
+                                    {% if data != None  %}
                                     {% for result in data %}
                                     <tr>
                                         <td>{{ result.nom_flora }}</td>
@@ -128,6 +129,9 @@
                                         <td>{{ result.autor_flora }}</td>
                                     </tr>
                                     {% endfor %}
+                                    {% else %}
+                                        <H3 style="padding-bottom: 10px;"> No existen especies de orquideas en este bioma. </H3>
+                                    {% endif %}
                                 </tbody>
                             </table>
                             

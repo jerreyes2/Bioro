@@ -23,9 +23,10 @@
                 <div class="intro">
                     <h2 class="text-center">Especies Mamiferos</h2>
                     <p class="text-center" style="font-weight: bold;text-align: center;color: var(--bs-gray-800);">Lista de Especies</p>
-                    <p class="text-center" style="color: var(--bs-gray-800);">Numero Total de especies:</p>
+                    
                 </div>
                 <div class="row articles">
+                    {% if imagen != None  %}
                     {%  for i in imagen  %}
                     <div class="col-sm-6 col-md-4 item">
                         <div class="zoomin frame" style="width:100%;height:236px;">
@@ -37,16 +38,15 @@
                         <p class="description">Familia: {{i.id_especie.id_familia}}</p>
                         <a class="action" href="#">
                             <a href="{% url 'ficha_tecnica_mamifero' i.id_especie.id_especie %}" >
-                                <img alt="Qries" src="{% static 'assets/img/Fauna/Anfibios/next4.png' %}" style="display: block; margin: auto; width: 25px; height: 25px; " >
+                                <img alt="Qries" src="{% static 'assets/img/Fauna/Mamiferos/next4.png' %}" style="display: block; margin: auto; width: 25px; height: 25px; " >
                              </a>
 
                         </a>
                     </div>
                     {% endfor %}
-
-
-
-                   
+                    {% else %}
+                        <H3 style="padding-bottom: 10px;"> No existen especies de mamíferos en este bioma. </H3>
+                    {% endif %}    
                 </div>
             </div>
         </div>
