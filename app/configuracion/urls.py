@@ -19,14 +19,18 @@ from django.urls import path, include
 
 from django.conf.urls import handler404
 
-#handler404 = page_not_found404
+from proyecto_app.views import page_not_found404
+
+
+
+handler404 = page_not_found404
 
 
 from django.conf.urls.static import static
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/',  admin.site.urls),
     path('', include('proyecto_app.urls'))
 ]
 
