@@ -1,4 +1,4 @@
-from django.http import request
+from django.http import HttpResponse, request
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.core.mail import send_mail,BadHeaderError,EmailMultiAlternatives
